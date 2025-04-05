@@ -1,31 +1,44 @@
 pipeline {
     agent any
-
+    
+    environment {
+        ECR_IMG = 'my-java-app'
+        version = 'latest'
+    }
     stages {
-        stage('git checkout') {
+        stage('Git Checkout') {
             steps {
-                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'githubcreds', url: 'https://github.com/Nisarg153/DockerDeploy']])
+                git credentialsId: 'githubcreds', url: 'https://github.com/Nisarg153/ECSDeploy.git'
             }
         }
-        stage('maven build package'){
-            steps {
+        stage('maven Build'){
+            steps{
                 sh 'mvn clean package'
             }
         }
-        stage('docker push'){
+        stage('Docker Build'){
+            steps{
+                sh 'docker build -t ${ECR_IMG}:${version} .'
+            }
+        }
+        stage('AWS ECR login') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'DockerCreds', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
-                        sh ''' echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin '''
-                        sh 'docker build -t nisarg153/dockerpipeline2:latest .'
-                        sh 'docker push nisarg153/dockerpipeline2:latest'
-                    }
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                    sh '''
+                        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 029197504624.dkr.ecr.us-east-1.amazonaws.com
+                    '''
                 }
             }
         }
-        stage('Configuring Docker pull pipeline'){
+        stage('docker tag and push the image to ECR'){
             steps{
-                build 'DockerPullPipeline'
+                    sh 'docker tag my-java-app:latest 029197504624.dkr.ecr.us-east-1.amazonaws.com/my-java-app:latest'
+                    sh 'docker push 029197504624.dkr.ecr.us-east-1.amazonaws.com/my-java-app:latest'
+            }
+        }
+        stage('Configuring ECRPUll Pipeline 0204'){
+            steps{
+                build 'ECRPullpipeline0204'
             }
         }
     }
