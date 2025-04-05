@@ -9,7 +9,7 @@ public class HomeController {
   
     @GetMapping({"/", "/home"})
     public String home(Model model) {
-        model.addAttribute("message", "Welcome to My Spring Boot Web Application! This is for docker demo ");
+        model.addAttribute("message", "Welcome to My Spring Boot Web Application! This is for ECS demo ");
         return "home";
     }
 }
