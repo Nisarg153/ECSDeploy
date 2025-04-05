@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApiController {
     @GetMapping("/hello")
     public String hello() {
-        return "Hello from Spring Boot API in ECS Cluster!";
+        return "Hello from Spring Boot API in ECS Cluster";
     }
 }
