@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: us-east-1
+    ECR_REPO: 029197504624.dkr.ecr.us-east-1.amazonaws.com/my-java-app
+    IMAGE_TAG: latest
+
+phases:
+  pre_build:
+    commands:
+      - echo "🔁 Logging into Amazon ECR..."
+      - aws --version
+      - $(aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO)
+      - echo "🔁 Cloning source code (already done by CodeBuild)"
+  
+  build:
+    commands:
+      - echo "⚙️ Running Maven build..."
+      - mvn clean package
+      - echo "🐳 Building Docker image..."
+      - docker build -t my-java-app:$IMAGE_TAG .
+      - docker tag my-java-app:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo "📤 Pushing Docker image to ECR..."
+      - docker push $ECR_REPO:$IMAGE_TAG
+      # - echo "🚀 Triggering ECRPullpipeline0204 (manually trigger another CodePipeline or use EventBridge/Lambda)"
+      # NOTE: AWS CodeBuild can't directly trigger a Jenkins job. Use CodePipeline or EventBridge + Lambda if needed.
+artifacts:
+  files:
+    - target/*.jar
