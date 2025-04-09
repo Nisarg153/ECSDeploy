@@ -9,6 +9,8 @@ env:
 phases:
   pre_build:
     commands:
+      - echo "🔐 Logging in to DockerHub to avoid rate limit..."
+      - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - echo "🔁 Logging into Amazon ECR..."
       - aws --version
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
