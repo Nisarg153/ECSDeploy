@@ -11,7 +11,7 @@ phases:
     commands:
       - echo "🔁 Logging into Amazon ECR..."
       - aws --version
-      - $(aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO)
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
       - echo "🔁 Cloning source code (already done by CodeBuild)"
   
   build:
